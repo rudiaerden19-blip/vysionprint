@@ -180,21 +180,23 @@ struct KassaView: View {
     let kassaURL = URL(string: "https://frituurnolim.vercel.app/kassa")!
     
     var body: some View {
-        ZStack(alignment: .topTrailing) {
+        ZStack(alignment: .topLeading) {
             // Kassa WebView - volledig scherm
             KassaWebView(url: kassaURL, printServer: printServer)
                 .ignoresSafeArea()
             
-            // Zwevende sluit knop rechtsboven
+            // Sluit knop linksboven naast hamburger menu
             Button(action: { dismiss() }) {
                 Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 32))
+                    .font(.system(size: 28))
                     .foregroundColor(.white)
-                    .shadow(color: .black, radius: 3)
+                    .shadow(color: .black.opacity(0.5), radius: 2)
             }
-            .padding(.top, 50)
-            .padding(.trailing, 16)
+            .padding(.top, 8)
+            .padding(.leading, 70)
         }
         .navigationBarHidden(true)
+        .statusBarHidden(true)
+        .persistentSystemOverlays(.hidden)
     }
 }
