@@ -1,79 +1,98 @@
 # Vysion Print - iOS App
 
-iOS app voor het printen van bonnen naar Epson WiFi printers vanuit de Vysion Horeca kassa.
+iOS app voor het printen van bonnen naar WiFi bonnenprinters vanuit de Vysion Horeca kassa.
 
-## Wat doet deze app?
+## ✨ Features
 
-1. Draait een HTTP server op je iPad (poort 3001)
-2. Ontvangt print opdrachten van de Vysion Horeca kassa
-3. Stuurt ESC/POS commando's naar je Epson printer
+- 🔍 **Automatisch printers zoeken** - Scant je WiFi netwerk
+- 🖨️ **Alle bonnenprinters** - Epson, Star, Bixolon, Citizen, etc.
+- 📱 **HTTP Server** - Ontvangt print opdrachten van de kassa
+- 💰 **Kassalade** - Open de kassalade vanuit de kassa
+- ⚙️ **Handmatige configuratie** - IP + poort instelbaar
 
-## Vereisten
+## 📱 Ondersteunde printers
+
+Alle WiFi bonnenprinters die ESC/POS ondersteunen:
+
+| Merk | Modellen |
+|------|----------|
+| Epson | TM-T20, TM-T20II, TM-T20III, TM-T88 |
+| Star | TSP100, TSP650, mC-Print |
+| Bixolon | SRP-330, SRP-350 |
+| Citizen | CT-S310, CT-S2000 |
+| Sewoo | LK-T21 |
+| Xprinter | XP-58, XP-80 |
+
+## 🚀 Installatie
+
+### Vereisten
 
 - iPad met iOS 16 of hoger
-- Apple Developer Program account (€99/jaar)
-- Epson TM-T20/T20II/T20III met WiFi
-- Xcode 15 of hoger
+- Mac met Xcode 15 of hoger
+- WiFi bonnenprinter
 
-## Installatie
+### Stap 1: Project openen
 
-### 1. Apple Developer Account
+```bash
+open ~/VysionPrint/VysionPrint.xcodeproj
+```
 
-1. Ga naar [developer.apple.com/programs/enroll](https://developer.apple.com/programs/enroll/)
-2. Koop het Apple Developer Program (€99/jaar)
-3. Wacht op activatie (24-48 uur)
+### Stap 2: Signing configureren
 
-### 2. Project openen
+1. Open project in Xcode
+2. Selecteer "VysionPrint" target
+3. Ga naar "Signing & Capabilities"
+4. Selecteer je Team (Apple ID)
+5. Pas Bundle Identifier aan (bijv. `com.jouwbedrijf.vysionprint`)
 
-1. Open Xcode
-2. Open het project: `~/VysionPrint/VysionPrint.xcodeproj`
-3. Selecteer je Team in Signing & Capabilities
-4. Verander de Bundle Identifier naar iets unieks (bijv. `com.jouwbedrijf.vysionprint`)
+### Stap 3: Op iPad draaien
 
-### 3. Op iPad draaien
+**Met kabel:**
+1. Sluit iPad aan op Mac
+2. Selecteer je iPad als target
+3. Klik Run (▶️)
+4. Vertrouw developer op iPad: Instellingen → Algemeen → VPN en apparaatbeheer
 
-1. Sluit je iPad aan via USB
-2. Selecteer je iPad als target device
-3. Klik op Run (▶️)
-4. Vertrouw de developer op je iPad (Instellingen → Algemeen → VPN en apparaatbeheer)
+**Draadloos:**
+1. Sluit iPad eerst één keer aan met kabel
+2. Xcode: Window → Devices and Simulators
+3. Vink aan: "Connect via network"
+4. Daarna kun je draadloos deployen
 
-### 4. TestFlight (voor klanten)
-
-1. In Xcode: Product → Archive
-2. Upload naar App Store Connect
-3. Ga naar [appstoreconnect.apple.com](https://appstoreconnect.apple.com)
-4. Maak een nieuwe app aan
-5. Ga naar TestFlight → voeg testers toe
-6. Stuur de TestFlight link naar je klanten
-
-## Gebruik
-
-### In de app
+### Stap 4: In de app
 
 1. Open Vysion Print op je iPad
-2. Vul het IP-adres van je Epson printer in
-3. Klik op "Test Print" om te testen
-4. Laat de app open staan (op de achtergrond)
+2. Klik **"Zoek printers"** - de app scant je netwerk
+3. Selecteer je printer uit de lijst
+4. Of: vul handmatig IP + poort in
+5. Klik **"Test Print"** om te testen
 
-### In de kassa
+### Stap 5: Kassa configureren
 
-De kassa stuurt automatisch print opdrachten naar de iPad app.
+1. Open de Vysion Kassa op je iPad (Safari)
+2. Ga naar **Instellingen → Printers**
+3. Zet **"Vysion Print Server"** aan
+4. Vul het IP-adres van je iPad in (getoond in de app)
+5. Test met **"Test Verbinding"**
 
-## API Endpoints
+## 📡 API Endpoints
 
 De app draait een HTTP server op poort 3001:
 
 | Endpoint | Methode | Beschrijving |
 |----------|---------|--------------|
-| `/status` | GET | Server status |
+| `/` | GET | Status pagina (HTML) |
+| `/status` | GET | Server status (JSON) |
 | `/print` | POST | Print een bon |
 | `/drawer` | POST | Open kassalade |
 | `/test` | POST | Test print |
 
-### Voorbeeld print request
+### Print request voorbeeld
 
 ```json
 POST /print
+Content-Type: application/json
+
 {
   "order": {
     "orderNumber": 123,
@@ -81,37 +100,71 @@ POST /print
     "items": [
       {
         "quantity": 2,
-        "menuItem": { "name": "Friet" },
+        "name": "Friet",
         "totalPrice": 5.00
       }
     ],
     "subtotal": 5.00,
-    "tax": 0.45,
-    "total": 5.45,
+    "tax": 0.87,
+    "total": 5.87,
     "paymentMethod": "CASH"
   },
   "businessInfo": {
     "name": "Mijn Zaak",
     "address": "Straat 1",
-    "city": "Stad"
+    "postalCode": "1234 AB",
+    "city": "Stad",
+    "phone": "012-3456789",
+    "vatNumber": "BE0123456789"
   }
 }
 ```
 
-## Troubleshooting
+## 🔧 Poorten
+
+| Poort | Gebruik |
+|-------|---------|
+| 3001 | HTTP server (kassa → app) |
+| 9100 | Printer (standaard ESC/POS) |
+
+Als je printer op een andere poort draait, kun je dit handmatig instellen in de app.
+
+## ❓ Troubleshooting
+
+### Geen printers gevonden bij scannen
+
+- Check of iPad en printer op hetzelfde WiFi zitten
+- Check of de printer aan staat
+- Probeer handmatig het IP in te voeren (print statusbon van printer)
+
+### Print werkt niet
+
+- Check printer IP/poort in de app
+- Stuur een test print om verbinding te testen
+- Check of de printer papier heeft
+
+### Kassa kan app niet bereiken
+
+- Check of de Vysion Print app open staat
+- Check of je het juiste iPad IP-adres hebt ingevuld
+- iPad en kassa moeten op hetzelfde WiFi zitten
 
 ### App sluit af op achtergrond
-iOS sluit apps af die op de achtergrond draaien. Houd de app open of gebruik Background Modes.
 
-### Printer reageert niet
-- Check of de printer aan staat
-- Check of iPad en printer op hetzelfde WiFi zitten
-- Check het IP-adres van de printer
+iOS kan apps op de achtergrond sluiten. Houd de app open of:
+- Ga naar Instellingen → Vysion Print → App-vernieuwing: Aan
 
-### Verbinding geweigerd
-- Check of de app draait
-- Check of je het juiste IP-adres van de iPad gebruikt in de kassa
+## 🛒 App Store (voor klanten)
 
-## Support
+Zodra je Apple Developer account actief is:
+
+1. Xcode: Product → Archive
+2. Upload naar App Store Connect
+3. Ga naar [appstoreconnect.apple.com](https://appstoreconnect.apple.com)
+4. Maak een nieuwe app aan
+5. **TestFlight**: Voeg testers toe voor beta testing
+6. **App Store**: Submit voor review
+
+## 📞 Support
 
 Hulp nodig? support@vysion-horeca.be

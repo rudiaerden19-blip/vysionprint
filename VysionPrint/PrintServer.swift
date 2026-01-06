@@ -1,6 +1,7 @@
 import Foundation
 import Network
 
+@MainActor
 class PrintServer: ObservableObject {
     @Published var isRunning = false
     @Published var printCount = 0
@@ -17,7 +18,7 @@ class PrintServer: ObservableObject {
             listener = try NWListener(using: parameters, on: NWEndpoint.Port(integerLiteral: port))
             
             listener?.stateUpdateHandler = { [weak self] state in
-                DispatchQueue.main.async {
+                Task { @MainActor in
                     switch state {
                     case .ready:
                         self?.isRunning = true
@@ -34,7 +35,9 @@ class PrintServer: ObservableObject {
             }
             
             listener?.newConnectionHandler = { [weak self] connection in
-                self?.handleConnection(connection)
+                Task { @MainActor in
+                    self?.handleConnection(connection)
+                }
             }
             
             listener?.start(queue: .global())
@@ -51,10 +54,12 @@ class PrintServer: ObservableObject {
     }
     
     private func handleConnection(_ connection: NWConnection) {
-        connection.stateUpdateHandler = { state in
+        connection.stateUpdateHandler = { [weak self] state in
             switch state {
             case .ready:
-                self.receiveData(connection)
+                Task { @MainActor in
+                    self?.receiveData(connection)
+                }
             case .failed(_), .cancelled:
                 connection.cancel()
             default:
@@ -67,13 +72,17 @@ class PrintServer: ObservableObject {
     private func receiveData(_ connection: NWConnection) {
         connection.receive(minimumIncompleteLength: 1, maximumLength: 65536) { [weak self] data, _, isComplete, error in
             if let data = data, !data.isEmpty {
-                self?.processRequest(data: data, connection: connection)
+                Task { @MainActor in
+                    self?.processRequest(data: data, connection: connection)
+                }
             }
             
             if isComplete || error != nil {
                 connection.cancel()
             } else {
-                self?.receiveData(connection)
+                Task { @MainActor in
+                    self?.receiveData(connection)
+                }
             }
         }
     }
@@ -116,7 +125,8 @@ class PrintServer: ObservableObject {
         // Route handling
         switch (method, path) {
         case ("GET", "/status"):
-            let response = "{\"status\":\"online\",\"printer\":\"\(printerManager?.printerIP ?? "not configured")\"}"
+            let printerIP = printerManager?.printerIP ?? "not configured"
+            let response = "{\"status\":\"online\",\"printer\":\"\(printerIP)\"}"
             sendResponse(connection: connection, statusCode: 200, body: response)
             
         case ("POST", "/print"):
@@ -129,13 +139,14 @@ class PrintServer: ObservableObject {
             handleTest(connection: connection)
             
         case ("GET", "/"):
+            let printerIP = printerManager?.printerIP ?? "niet geconfigureerd"
             let html = """
             <html>
             <head><title>Vysion Print Server</title></head>
             <body style="font-family: sans-serif; padding: 40px; background: #1a1a2e; color: #fff;">
             <h1>🖨️ Vysion Print Server</h1>
             <p style="color: #22c55e;">✅ iOS App actief</p>
-            <p>Printer: \(printerManager?.printerIP ?? "niet geconfigureerd")</p>
+            <p>Printer: \(printerIP)</p>
             <p>Bonnen geprint: \(printCount)</p>
             </body>
             </html>
@@ -160,14 +171,9 @@ class PrintServer: ObservableObject {
         Task {
             let success = await printerManager?.printReceipt(order: order, businessInfo: businessInfo) ?? false
             
-            await MainActor.run {
-                if success {
-                    self.printCount += 1
-                    self.lastPrintTime = Date()
-                }
-            }
-            
             if success {
+                self.printCount += 1
+                self.lastPrintTime = Date()
                 sendResponse(connection: connection, statusCode: 200, body: "{\"success\":true}")
             } else {
                 sendResponse(connection: connection, statusCode: 500, body: "{\"error\":\"Print failed\"}")
@@ -190,14 +196,9 @@ class PrintServer: ObservableObject {
         Task {
             let success = await printerManager?.sendTestPrint() ?? false
             
-            await MainActor.run {
-                if success {
-                    self.printCount += 1
-                    self.lastPrintTime = Date()
-                }
-            }
-            
             if success {
+                self.printCount += 1
+                self.lastPrintTime = Date()
                 sendResponse(connection: connection, statusCode: 200, body: "{\"success\":true}")
             } else {
                 sendResponse(connection: connection, statusCode: 500, body: "{\"error\":\"Test print failed\"}")
@@ -205,7 +206,7 @@ class PrintServer: ObservableObject {
         }
     }
     
-    private func sendResponse(connection: NWConnection, statusCode: Int, body: String, contentType: String = "application/json") {
+    nonisolated private func sendResponse(connection: NWConnection, statusCode: Int, body: String, contentType: String = "application/json") {
         let statusText: String
         switch statusCode {
         case 200: statusText = "OK"
@@ -232,7 +233,7 @@ class PrintServer: ObservableObject {
         })
     }
     
-    private func sendCORSResponse(connection: NWConnection) {
+    nonisolated private func sendCORSResponse(connection: NWConnection) {
         let response = """
         HTTP/1.1 200 OK\r
         Access-Control-Allow-Origin: *\r

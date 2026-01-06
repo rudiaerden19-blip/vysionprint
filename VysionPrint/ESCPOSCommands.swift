@@ -47,14 +47,49 @@ struct ESCPOSCommands {
         Data([0x1D, 0x21, 0x10])  // GS ! 16
     }
     
-    /// Double height and width
+    /// Double height and width (2x2)
     static var doubleSize: Data {
         Data([0x1D, 0x21, 0x11])  // GS ! 17
+    }
+    
+    /// Large size (3x3) - EXTRA GROOT
+    static var largeSize: Data {
+        Data([0x1D, 0x21, 0x22])  // GS ! 34
     }
     
     /// Normal size text
     static var normalSize: Data {
         Data([0x1D, 0x21, 0x00])  // GS ! 0
+    }
+    
+    /// Emphasize on (donkerder printen)
+    static var emphasizeOn: Data {
+        Data([0x1B, 0x47, 0x01])  // ESC G 1
+    }
+    
+    /// Emphasize off
+    static var emphasizeOff: Data {
+        Data([0x1B, 0x47, 0x00])  // ESC G 0
+    }
+    
+    /// Line spacing wide (meer ruimte tussen regels)
+    static var lineSpacingWide: Data {
+        Data([0x1B, 0x33, 0x3C])  // ESC 3 60
+    }
+    
+    /// Line spacing normal
+    static var lineSpacingNormal: Data {
+        Data([0x1B, 0x33, 0x1E])  // ESC 3 30
+    }
+    
+    /// Character spacing wide (meer ruimte tussen letters)
+    static var charSpacingWide: Data {
+        Data([0x1B, 0x20, 0x01])  // ESC SP 1 - beetje ruimte
+    }
+    
+    /// Character spacing normal
+    static var charSpacingNormal: Data {
+        Data([0x1B, 0x20, 0x00])  // ESC SP 0
     }
     
     /// Underline on
