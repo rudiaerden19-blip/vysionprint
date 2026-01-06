@@ -101,12 +101,10 @@ struct KassaWebView: UIViewRepresentable {
             self.parent = parent
         }
         
-        // Handle pop-ups (voor printen)
+        // Handle pop-ups (voor printen) - negeer ze, print gaat via native bridge
         func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
-            // Open de URL in dezelfde webview (geen nieuwe tab/venster nodig)
-            if let url = navigationAction.request.url {
-                webView.load(URLRequest(url: url))
-            }
+            // Negeer pop-ups - de print gaat via de native Vysion Print bridge
+            // Dit voorkomt dat window.open() de app crasht
             return nil
         }
         

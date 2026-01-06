@@ -232,6 +232,50 @@ class PrinterManager: ObservableObject {
             commands.append("Bediend door: \(staffName)\n".data(using: .utf8) ?? Data())
         }
         
+        // ==================== ONLINE BESTELLING INFO ====================
+        let isOnlineOrder = order["isOnlineOrder"] as? Bool ?? false
+        if isOnlineOrder {
+            commands.append("\n".data(using: .ascii) ?? Data())
+            commands.append(sep.data(using: .ascii) ?? Data())
+            commands.append("\n".data(using: .ascii) ?? Data())
+            
+            commands.append(ESCPOSCommands.alignCenter)
+            commands.append(ESCPOSCommands.boldOn)
+            commands.append(ESCPOSCommands.doubleHeight)
+            commands.append("*** ONLINE BESTELLING ***\n".data(using: .utf8) ?? Data())
+            commands.append(ESCPOSCommands.normalSize)
+            commands.append(ESCPOSCommands.boldOff)
+            commands.append("\n".data(using: .ascii) ?? Data())
+            
+            commands.append(ESCPOSCommands.alignLeft)
+            
+            // Gewenste tijd
+            if let requestedDateTime = order["requestedDateTime"] as? String {
+                commands.append(ESCPOSCommands.boldOn)
+                commands.append("GEWENST: \(requestedDateTime)\n".data(using: .utf8) ?? Data())
+                commands.append(ESCPOSCommands.boldOff)
+                commands.append("\n".data(using: .ascii) ?? Data())
+            }
+            
+            // Klant info
+            if let customerName = order["customerName"] as? String {
+                commands.append("Klant: \(customerName)\n".data(using: .utf8) ?? Data())
+            }
+            if let customerPhone = order["customerPhone"] as? String {
+                commands.append("Tel: \(customerPhone)\n".data(using: .utf8) ?? Data())
+            }
+            if let customerAddress = order["customerAddress"] as? String, !customerAddress.isEmpty {
+                commands.append("Adres: \(customerAddress)\n".data(using: .utf8) ?? Data())
+            }
+            if let customerNotes = order["customerNotes"] as? String, !customerNotes.isEmpty {
+                commands.append("\n".data(using: .ascii) ?? Data())
+                commands.append(ESCPOSCommands.boldOn)
+                commands.append("OPMERKING:\n".data(using: .utf8) ?? Data())
+                commands.append(ESCPOSCommands.boldOff)
+                commands.append("\(customerNotes)\n".data(using: .utf8) ?? Data())
+            }
+        }
+        
         commands.append("\n".data(using: .ascii) ?? Data())
         commands.append(sep.data(using: .ascii) ?? Data())
         commands.append("\n".data(using: .ascii) ?? Data())
