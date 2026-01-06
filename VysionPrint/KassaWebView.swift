@@ -72,8 +72,12 @@ struct KassaWebView: UIViewRepresentable {
         )
         configuration.userContentController.addUserScript(script)
         
+        // Pop-ups toestaan voor printen
+        configuration.preferences.javaScriptCanOpenWindowsAutomatically = true
+        
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator
+        webView.uiDelegate = context.coordinator
         webView.scrollView.bounces = false
         webView.scrollView.contentInsetAdjustmentBehavior = .never
         
@@ -89,12 +93,21 @@ struct KassaWebView: UIViewRepresentable {
         Coordinator(self)
     }
     
-    class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
+    class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler, WKUIDelegate {
         var parent: KassaWebView
         weak var webView: WKWebView?
         
         init(_ parent: KassaWebView) {
             self.parent = parent
+        }
+        
+        // Handle pop-ups (voor printen)
+        func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+            // Open de URL in dezelfde webview (geen nieuwe tab/venster nodig)
+            if let url = navigationAction.request.url {
+                webView.load(URLRequest(url: url))
+            }
+            return nil
         }
         
         // Handle messages from JavaScript
@@ -193,7 +206,7 @@ struct KassaView: View {
                     .shadow(color: .black.opacity(0.5), radius: 2)
             }
             .padding(.top, 8)
-            .padding(.leading, 70)
+            .padding(.leading, 240)
         }
         .navigationBarHidden(true)
         .statusBarHidden(true)
