@@ -1,0 +1,18 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#16213e"/>
+    </linearGradient>
+    <linearGradient id="vGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff4444"/>
+      <stop offset="100%" stop-color="#cc0000"/>
+    </linearGradient>
+  </defs>
+  <!-- Achtergrond -->
+  <rect width="1024" height="1024" rx="200" fill="url(#bg)"/>
+  <!-- Rode V -->
+  <path d="M280 250 L512 774 L744 250 L640 250 L512 600 L384 250 Z" fill="url(#vGradient)"/>
+  <!-- Subtiele glans -->
+  <path d="M280 250 L512 774 L512 600 L384 250 Z" fill="rgba(255,255,255,0.1)"/>
+</svg>
