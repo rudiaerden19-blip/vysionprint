@@ -101,11 +101,44 @@ struct KassaWebView: UIViewRepresentable {
             self.parent = parent
         }
         
-        // Handle pop-ups (voor printen) - negeer ze, print gaat via native bridge
+        // Handle pop-ups en target="_blank" links - open in Safari
         func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
-            // Negeer pop-ups - de print gaat via de native Vysion Print bridge
-            // Dit voorkomt dat window.open() de app crasht
+            // Als het een echte URL is (niet print gerelateerd), open in Safari
+            if let url = navigationAction.request.url {
+                let urlString = url.absoluteString
+                // Print-gerelateerde URLs negeren
+                if urlString.contains(":3001") || urlString.contains("localhost") {
+                    return nil
+                }
+                // Externe links openen in Safari
+                if url.scheme == "https" || url.scheme == "http" {
+                    UIApplication.shared.open(url)
+                }
+            }
             return nil
+        }
+        
+        // Handle navigatie naar externe sites - open in Safari, blijf in app voor kassa
+        func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+            guard let url = navigationAction.request.url else {
+                decisionHandler(.allow)
+                return
+            }
+            
+            let host = url.host ?? ""
+            
+            // Toegestane hosts (kassa domein) - blijf in de app
+            let allowedHosts = ["frituurnolim.vercel.app", "localhost", "127.0.0.1"]
+            
+            if allowedHosts.contains(where: { host.contains($0) }) || url.scheme == "about" {
+                decisionHandler(.allow)
+            } else if url.scheme == "https" || url.scheme == "http" {
+                // Externe site - open in Safari
+                UIApplication.shared.open(url)
+                decisionHandler(.cancel)
+            } else {
+                decisionHandler(.allow)
+            }
         }
         
         // Handle messages from JavaScript
