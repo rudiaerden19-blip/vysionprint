@@ -7,7 +7,7 @@ struct VysionPrintApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainKassaView()
                 .environmentObject(printerManager)
                 .environmentObject(printServer)
                 .onAppear {
