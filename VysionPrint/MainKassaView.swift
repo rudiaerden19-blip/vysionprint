@@ -16,11 +16,11 @@ struct MainKassaView: View {
             KassaWebView(url: kassaURL, printServer: printServer)
                 .ignoresSafeArea()
             
-            // Printer status knop rechtsboven
+            // Printer status knop linksonder (uit de weg van kassa knoppen)
             VStack {
+                Spacer()
+                
                 HStack {
-                    Spacer()
-                    
                     // Printer status indicator + settings knop
                     Button(action: { showPrinterSettings = true }) {
                         HStack(spacing: 6) {
@@ -39,11 +39,11 @@ struct MainKassaView: View {
                         .shadow(color: .black.opacity(0.2), radius: 4)
                     }
                     .foregroundColor(printerStatusColor)
+                    
+                    Spacer()
                 }
-                .padding(.top, 12)
-                .padding(.trailing, 16)
-                
-                Spacer()
+                .padding(.bottom, 30)
+                .padding(.leading, 16)
             }
         }
         .statusBarHidden(true)
