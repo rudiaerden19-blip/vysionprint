@@ -3,16 +3,69 @@ import Network
 
 @MainActor
 class PrinterManager: ObservableObject {
+    // Singleton for global access
+    static let shared = PrinterManager()
+    
     @Published var printerIP: String = ""
     @Published var printerPort: UInt16 = 9100
     @Published var isConnected: Bool = false
     @Published var lastError: String?
+    @Published var isAutoSetupRunning: Bool = false
     
     private let userDefaultsKeyIP = "vysion_printer_ip"
     private let userDefaultsKeyPort = "vysion_printer_port"
     
     init() {
         load()
+    }
+    
+    // MARK: - Auto Setup
+    
+    /// Automatically find and connect to a printer on the network
+    func autoSetup() async {
+        guard printerIP.isEmpty else {
+            print("Printer al geconfigureerd: \(printerIP)")
+            return
+        }
+        
+        await MainActor.run {
+            isAutoSetupRunning = true
+            lastError = "Printer zoeken..."
+        }
+        
+        // Scan voor printers
+        let scanner = NetworkScanner()
+        scanner.startScan()
+        
+        // Wacht tot scanner klaar is (max 15 seconden)
+        var waitCount = 0
+        while scanner.isScanning && waitCount < 30 {
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 sec
+            waitCount += 1
+        }
+        scanner.stopScan()
+        
+        // Kies eerste gevonden printer
+        if let printer = scanner.foundPrinters.first {
+            await MainActor.run {
+                selectPrinter(ip: printer.ipAddress, port: printer.port)
+                lastError = "Printer gevonden: \(printer.ipAddress)"
+                isAutoSetupRunning = false
+            }
+            
+            // Test print
+            let success = await sendTestPrint()
+            if !success {
+                await MainActor.run {
+                    lastError = "Printer gevonden maar test mislukt"
+                }
+            }
+        } else {
+            await MainActor.run {
+                lastError = "Geen printer gevonden"
+                isAutoSetupRunning = false
+            }
+        }
     }
     
     func save() {

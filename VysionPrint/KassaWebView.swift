@@ -128,7 +128,8 @@ struct KassaWebView: UIViewRepresentable {
             let host = url.host ?? ""
             
             // Toegestane hosts (kassa domein) - blijf in de app
-            let allowedHosts = ["frituurnolim.vercel.app", "localhost", "127.0.0.1"]
+            // Dynamisch: sta alle vysion/vercel hosts toe + localhost
+            let allowedHosts = ["frituurnolim.vercel.app", "appvysion.com", ".vercel.app", "localhost", "127.0.0.1"]
             
             if allowedHosts.contains(where: { host.contains($0) }) || url.scheme == "about" {
                 decisionHandler(.allow)
