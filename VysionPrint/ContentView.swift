@@ -154,7 +154,8 @@ struct ContentView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Verbonden printer")
                         .font(.headline)
-                    Text("\(printerManager.printerIP):\(printerManager.printerPort)")
+                    // verbatim: voorkomt nl-BE groepering (9100 → "9.100") in LocalizedStringKey
+                    Text(verbatim: "\(printerManager.printerIP):\(printerManager.printerPort)")
                         .font(.system(.body, design: .monospaced))
                         .foregroundColor(.secondary)
                 }

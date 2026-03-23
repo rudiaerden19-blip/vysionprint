@@ -8,7 +8,13 @@ struct MainKassaView: View {
     @State private var showPrinterSettings = false
     @State private var showNoPrinterAlert = false
     
-    let kassaURL = URL(string: "https://frituurnolim.vercel.app/kassa")!
+    // Tenant config voor dynamische URL
+    let tenantConfig: TenantConfig
+    
+    // Fallback URL
+    private var kassaURL: URL {
+        URL(string: tenantConfig.kassaURL) ?? URL(string: "https://frituurnolim.vercel.app/kassa")!
+    }
     
     var body: some View {
         ZStack {
@@ -183,7 +189,8 @@ struct PrinterSettingsSheet: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Verbonden printer")
                         .font(.headline)
-                    Text("\(printerManager.printerIP):\(printerManager.printerPort)")
+                    // verbatim: voorkomt nl-BE groepering (9100 → "9.100") in LocalizedStringKey
+                    Text(verbatim: "\(printerManager.printerIP):\(printerManager.printerPort)")
                         .font(.system(.body, design: .monospaced))
                         .foregroundColor(.secondary)
                 }
@@ -473,7 +480,14 @@ struct PrinterSettingsSheet: View {
 }
 
 #Preview {
-    MainKassaView()
-        .environmentObject(PrinterManager())
-        .environmentObject(PrintServer())
+    MainKassaView(tenantConfig: TenantConfig(
+        id: "preview",
+        name: "Preview",
+        kassaURL: "https://frituurnolim.vercel.app/kassa",
+        printerVendor: "AUTO",
+        locale: "nl-BE",
+        btw: 6
+    ))
+    .environmentObject(PrinterManager.shared)
+    .environmentObject(PrintServer())
 }
